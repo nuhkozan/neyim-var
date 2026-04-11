@@ -2347,3 +2347,4 @@ Rules: 3-4 diseases, independent probabilities, assess emergencies realistically
     </div></>
   );
 }
+ 
