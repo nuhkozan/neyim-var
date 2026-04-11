@@ -993,7 +993,7 @@ JSON format:
 
 Rules: 3-4 diseases, independent probabilities, assess emergencies realistically. Respond in the user's language based on country: ${profile.country}.`;
 
-      const res=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:2500,messages:[{role:"user",content:prompt}]})});
+      const res=await fetch("https://neyim-var-phi.vercel.app/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:2500,messages:[{role:"user",content:prompt}]})});
       if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(`API ${res.status}: ${e?.error?.message||res.statusText}`);}
       const data=await res.json();
       if(data.error)throw new Error(data.error.message);
@@ -1071,7 +1071,7 @@ Rules: 3-4 diseases, independent probabilities, assess emergencies realistically
             ]
           }];
 
-          const res = await fetch("/api/chat",{
+          const res = await fetch("https://neyim-var-phi.vercel.app/api/chat",{
             method:"POST", headers:{"Content-Type":"application/json"},
             body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:2000, messages })
           });
@@ -1158,7 +1158,7 @@ Rules: 3-4 diseases, independent probabilities, assess emergencies realistically
         reader.onload = async (ev) => {
           const base64 = ev.target.result.split(",")[1];
           const mediaType = file.type || "image/jpeg";
-          const res = await fetch("/api/chat",{
+          const res = await fetch("https://neyim-var-phi.vercel.app/api/chat",{
             method:"POST", headers:{"Content-Type":"application/json"},
             body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:2000,
               messages:[{ role:"user", content:[
