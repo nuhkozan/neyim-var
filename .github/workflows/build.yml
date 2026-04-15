@@ -37,15 +37,21 @@ jobs:
             -dname "CN=Nuh Kozan, OU=NeyimVar, O=NeyimVar, L=Istanbul, S=Istanbul, C=TR"
       - name: Build Release APK
         run: cd android && ./gradlew assembleRelease
+      - name: Zipalign
+        run: |
+          BUILDTOOLS=$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)
+          $ANDROID_HOME/build-tools/$BUILDTOOLS/zipalign -v 4 \
+            android/app/build/outputs/apk/release/app-release-unsigned.apk \
+            android/app/build/outputs/apk/release/app-release-aligned.apk
       - name: Sign APK
         run: |
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
-            -keystore neyimvar.keystore \
-            -storepass NeyimVar2026 -keypass NeyimVar2026 \
-            android/app/build/outputs/apk/release/app-release-unsigned.apk neyimvar
-          $ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | tail -1)/zipalign -v 4 \
-            android/app/build/outputs/apk/release/app-release-unsigned.apk \
-            android/app/build/outputs/apk/release/app-release-signed.apk
+          BUILDTOOLS=$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)
+          $ANDROID_HOME/build-tools/$BUILDTOOLS/apksigner sign \
+            --ks neyimvar.keystore \
+            --ks-pass pass:NeyimVar2026 \
+            --key-pass pass:NeyimVar2026 \
+            --out android/app/build/outputs/apk/release/app-release-signed.apk \
+            android/app/build/outputs/apk/release/app-release-aligned.apk
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
