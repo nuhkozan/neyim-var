@@ -4,7 +4,7 @@ android {
     namespace = "com.neyimvar.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.neyimvar.app"
+        applicationId "com.nuhkozan.neyimvar"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
