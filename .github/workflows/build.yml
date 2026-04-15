@@ -7,11 +7,51 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Generate and print keystore
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install deps
+        run: npm install
+      - name: Create index.html
         run: |
-          keytool -genkey -v -keystore neyimvar.keystore \
-            -alias neyimvar -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass NeyimVar2026 -keypass NeyimVar2026 \
-            -dname "CN=Nuh Kozan, OU=NeyimVar, O=NeyimVar, L=Istanbul, S=Istanbul, C=TR"
-          echo "KEYSTORE_BASE64=$(base64 -w 0 neyimvar.keystore)" >> $GITHUB_OUTPUT
-          base64 -w 0 neyimvar.keystore
+          cat > index.html << 'HTMLEOF'
+          <!DOCTYPE html>
+          <html lang="tr">
+          <head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Neyim Var?</title></head>
+          <body><div id="root"></div><script type="module" src="/src/main.jsx"></script></body>
+          </html>
+          HTMLEOF
+      - name: Build web
+        run: npm run build
+      - uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+      - name: Sync Capacitor
+        run: npx cap sync android
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > neyimvar.keystore
+      - name: Build Release APK
+        run: cd android && ./gradlew assembleRelease
+      - name: Zipalign
+        run: |
+          BUILDTOOLS=$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)
+          $ANDROID_HOME/build-tools/$BUILDTOOLS/zipalign -v 4 \
+            android/app/build/outputs/apk/release/app-release-unsigned.apk \
+            android/app/build/outputs/apk/release/app-release-aligned.apk
+      - name: Sign APK
+        run: |
+          BUILDTOOLS=$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)
+          $ANDROID_HOME/build-tools/$BUILDTOOLS/apksigner sign \
+            --ks neyimvar.keystore \
+            --ks-pass pass:NeyimVar2026 \
+            --key-pass pass:NeyimVar2026 \
+            --ks-key-alias neyimvar \
+            --out android/app/build/outputs/apk/release/app-release-signed.apk \
+            android/app/build/outputs/apk/release/app-release-aligned.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: neyimvar-release
+          path: android/app/build/outputs/apk/release/app-release-signed.apk
